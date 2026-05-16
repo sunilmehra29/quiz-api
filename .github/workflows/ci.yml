@@ -33,3 +33,21 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # NEW — Phase 4 steps below
+
+      - name: Wait for Render to deploy
+        if: github.event_name == 'push'
+        run: |
+          echo "Waiting 30 seconds for Render to deploy..."
+          sleep 30
+
+      - name: Health check on live app
+        if: github.event_name == 'push'
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://quiz-api-e5g1.onrender.com/health)
+          if [ "$response" != "200" ]; then
+            echo "Health check FAILED! Got HTTP $response"
+            exit 1
+          fi
+          echo "Health check PASSED! App is alive."
