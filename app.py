@@ -1,17 +1,53 @@
 import os
-from flask import Flask, jsonify, request, abort
+import string
+import random
+import time
+from flask import Flask, jsonify, request, redirect, abort
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 
-# In-memory store — simple dict, no database needed yet
 quizzes = {}
 next_id = 1
 
+# Prometheus metrics
+REQUEST_COUNT = Counter(
+    'quiz_api_requests_total',
+    'Total number of requests',
+    ['method', 'endpoint', 'status']
+)
+
+REQUEST_LATENCY = Histogram(
+    'quiz_api_request_duration_seconds',
+    'Request latency in seconds',
+    ['endpoint']
+)
+
+@app.before_request
+def start_timer():
+    request._start_time = time.time()
+
+@app.after_request
+def track_metrics(response):
+    if request.path != '/metrics':
+        latency = time.time() - request._start_time
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.path,
+            status=response.status_code
+        ).inc()
+        REQUEST_LATENCY.labels(endpoint=request.path).observe(latency)
+    return response
+
+@app.route("/metrics")
+def metrics():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 @app.route("/health")
 def health():
     return jsonify({"status": "ok", "version": "1.0.0"})
 
+# ... rest of your app stays the same
 
 @app.route("/quizzes", methods=["GET"])
 def list_quizzes():
