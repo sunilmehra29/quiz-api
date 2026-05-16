@@ -10,9 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # Required for the bot to post PR comments
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
