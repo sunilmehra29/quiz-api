@@ -106,3 +106,7 @@ def test_submit_failing_score(client, created_quiz):
 def test_submit_wrong_number_of_answers(client, created_quiz):
     r = client.post("/quizzes/1/submit", json={"answers": ["def"]})
     assert r.status_code == 400
+
+# add a broken test to test_app.py
+def test_intentionally_broken():
+    assert 1 == 2
