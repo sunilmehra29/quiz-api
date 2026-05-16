@@ -1,7 +1,5 @@
 name: CI Pipeline
 
-# Trigger: run this workflow on every push to main,
-# and on every pull request targeting main
 on:
   push:
     branches: [master]
@@ -10,24 +8,29 @@ on:
 
 jobs:
   test:
-    # The machine GitHub will run your steps on
     runs-on: ubuntu-latest
 
+    # Required for the bot to post PR comments
+    permissions:
+      contents: read
+      pull-requests: write
+
     steps:
-      # Step 1: Download your repo's code onto the runner
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install Python on the runner
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      # Step 3: Install your app's dependencies
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Step 4: Run your tests and generate a coverage report
       - name: Run tests with coverage
-        run: pytest tests/ -v --cov=app --cov-report=term-missing
+        run: pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Post coverage comment on PR
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
