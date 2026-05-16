@@ -1,5 +1,8 @@
 # Quiz API
 
+![CI Pipeline](https://github.com/sunilmehra29/quiz-api/actions/workflows/ci.yml/badge.svg?branch=master)
+
+
 A simple Python/Flask quiz app built for learning CI/CD monitoring with GitHub Actions.
 
 ---
